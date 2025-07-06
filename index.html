@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--tg-theme-section-separator-color, #e0e0e0);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        
+        .button {
+            background-color: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-button-text-color, white);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+        
+        .button:hover {
+            opacity: 0.8;
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .counter {
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--tg-theme-accent-text-color, #007aff);
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--tg-theme-section-separator-color, #e0e0e0);
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status {
+            background-color: var(--tg-theme-accent-text-color, #007aff);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 My Mini App</h1>
+            <p>Добро пожаловать в мини-приложение!</p>
+        </div>
+        
+        <div class="card">
+            <div class="user-info">
+                <div class="avatar" id="userAvatar">👤</div>
+                <div>
+                    <div id="userName">Пользователь</div>
+                    <div id="userStatus" class="status">Онлайн</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Счетчик кликов</h3>
+            <div class="counter" id="counter">0</div>
+            <button class="button" id="incrementBtn">Увеличить счетчик</button>
+            <button class="button" id="resetBtn">Сбросить</button>
+        </div>
+        
+        <div class="card">
+            <h3>Информация о приложении</h3>
+            <div class="info-item">
+                <span>Версия:</span>
+                <span>1.0.0</span>
+            </div>
+            <div class="info-item">
+                <span>Платформа:</span>
+                <span id="platform">Неизвестно</span>
+            </div>
+            <div class="info-item">
+                <span>Тема:</span>
+                <span id="theme">Неизвестно</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <button class="button" id="shareBtn">Поделиться с друзьями</button>
+            <button class="button" id="closeBtn">Закрыть приложение</button>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        
+        // Расширить приложение на весь экран
+        tg.expand();
+        
+        // Включить кнопку "Назад"
+        tg.BackButton.show();
+        
+        // Обработчик кнопки "Назад"
+        tg.BackButton.onClick(() => {
+            tg.close();
+        });
+        
+        // Счетчик кликов
+        let count = 0;
+        const counterElement = document.getElementById('counter');
+        const incrementBtn = document.getElementById('incrementBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        
+        // Обновление счетчика
+        function updateCounter() {
+            counterElement.textContent = count;
+            
+            // Включить главную кнопку при count > 0
+            if (count > 0) {
+                tg.MainButton.setText(`Счетчик: ${count}`);
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+        
+        // Обработчики событий
+        incrementBtn.addEventListener('click', () => {
+            count++;
+            updateCounter();
+            
+            // Вибрация при клике
+            tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            count = 0;
+            updateCounter();
+            tg.HapticFeedback.impactOccurred('medium');
+        });
+        
+        shareBtn.addEventListener('click', () => {
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Попробуйте это крутое мини-приложение!')}`;
+            tg.openTelegramLink(shareUrl);
+        });
+        
+        closeBtn.addEventListener('click', () => {
+            tg.close();
+        });
+        
+        // Обработчик главной кнопки
+        tg.MainButton.onClick(() => {
+            tg.sendData(JSON.stringify({
+                action: 'counter_result',
+                count: count
+            }));
+        });
+        
+        // Инициализация информации о пользователе
+        function initUserInfo() {
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                document.getElementById('userName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+                document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+            }
+        }
+        
+        // Инициализация информации о платформе
+        function initPlatformInfo() {
+            document.getElementById('platform').textContent = tg.platform;
+            document.getElementById('theme').textContent = tg.colorScheme;
+        }
+        
+        // Инициализация темы
+        function initTheme() {
+            document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
+            document.body.style.color = tg.themeParams.text_color || '#000000';
+        }
+        
+        // Инициализация приложения
+        function init() {
+            initUserInfo();
+            initPlatformInfo();
+            initTheme();
+            updateCounter();
+            
+            // Уведомить Telegram, что приложение готово
+            tg.ready();
+        }
+        
+        // Запуск приложения
+        init();
+        
+        // Обработка изменения темы
+        tg.onEvent('themeChanged', () => {
+            initTheme();
+        });
+    </script>
+</body>
+</html>
